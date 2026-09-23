@@ -63,10 +63,10 @@ jobs:
               drawtext=fontfile=${FONT}:textfile=tmp/cta.txt:fontsize=82:fontcolor=0xF28C52:x=(w-text_w)/2:y=745:enable='gte(t,13.1)',
               drawtext=fontfile=${FONT}:text='Zugang per DM':fontsize=46:fontcolor=white:x=(w-text_w)/2:y=870:enable='gte(t,13.1)',
               format=yuv420p[v];
-              [1:a]volume=1.0[voice];
+              [1:a]volume=1.0,asplit=2[voice_sc][voice_mix];
               [2:a]volume=0.10[music];
-              [music][voice]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
-              [duck][voice]amix=inputs=2:duration=first:normalize=0[a]" \
+              [music][voice_sc]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
+              [duck][voice_mix]amix=inputs=2:duration=first:normalize=0[a]" \
             -map "[v]" -map "[a]" -t 16 -r 30 -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart reels/Reel_02_System_statt_Promptchaos.mp4
 
       - name: Build Reel 2
@@ -90,10 +90,10 @@ jobs:
               drawtext=fontfile=${FONT}:textfile=tmp/cta.txt:fontsize=82:fontcolor=0xF28C52:x=(w-text_w)/2:y=745:enable='gte(t,13.6)',
               drawtext=fontfile=${FONT}:text='Zugang per DM':fontsize=46:fontcolor=white:x=(w-text_w)/2:y=870:enable='gte(t,13.6)',
               format=yuv420p[v];
-              [1:a]volume=1.0[voice];
+              [1:a]volume=1.0,asplit=2[voice_sc][voice_mix];
               [2:a]volume=0.10[music];
-              [music][voice]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
-              [duck][voice]amix=inputs=2:duration=first:normalize=0[a]" \
+              [music][voice_sc]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
+              [duck][voice_mix]amix=inputs=2:duration=first:normalize=0[a]" \
             -map "[v]" -map "[a]" -t 16.72 -r 30 -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart reels/Reel_03_Kuehlschrank_KI.mp4
 
       - name: Commit finished Reels
