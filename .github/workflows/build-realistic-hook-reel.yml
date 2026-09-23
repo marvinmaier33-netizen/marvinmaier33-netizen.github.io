@@ -1,0 +1,50 @@
+name: Build realistic hook Reel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-realistic-hook-reel.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core curl
+
+      - name: Download background and music
+        run: |
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/seedance_2_mini/cgt-20260924011214-vzk6j/Photorealistic_vertical_lifestyle_B_roll_for_an_Instagram_Reel__9_16__A_young_adult_working_at_a_mod.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYWEyNzYyMTliNGE5ZmM1NiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDM0NjEzN30.DEHr9Vopv4hPnATZ4L12pIg6ftFijvX79YGlVQTs3pM' -o broll.mp4
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/lyria3-clip/a39c5246-1660-4c34-8664-7f9724b3ceae/Einfach_mit_KI___Reel_Background_Bed.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmY0ZGJkYmVkNWRlNTM1NSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDMzNjcwMn0.dUJPKXISjp5jFNRlMy6AwnVBqfslihMNj19-nDdqzZk' -o music.mp3
+
+      - name: Build Reel
+        run: |
+          mkdir -p reels
+          FONT='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+          ffmpeg -y -i broll.mp4 -stream_loop -1 -i music.mp3 \
+            -filter_complex "
+              [0:v]scale=1080:1920:flags=lanczos,
+              eq=brightness=-0.05:saturation=0.96,
+              drawbox=x=125:y=675:w=830:h=520:color=black@0.38:t=fill,
+              drawtext=fontfile=${FONT}:text='Du brauchst keine':fontsize=66:fontcolor=white:x=(w-text_w)/2:y=760,
+              drawtext=fontfile=${FONT}:text='100 Prompts.':fontsize=86:fontcolor=0xF28C52:x=(w-text_w)/2:y=860,
+              drawtext=fontfile=${FONT}:text='Du brauchst ein System.':fontsize=60:fontcolor=white:x=(w-text_w)/2:y=985,
+              format=yuv420p[v];
+              [1:a]atrim=duration=8,afade=t=in:st=0:d=0.4,afade=t=out:st=7.2:d=0.8,volume=0.5[a]" \
+            -map "[v]" -map "[a]" -t 8 -r 30 -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart reels/Hook_Reel_Realistisch_01.mp4
+
+      - name: Commit finished Reel
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reels/Hook_Reel_Realistisch_01.mp4
+          git commit -m "Add realistic hook Reel" || exit 0
+          git push
