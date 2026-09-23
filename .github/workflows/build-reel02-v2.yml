@@ -127,7 +127,7 @@ jobs:
       - name: Add voice and music
         run: |
           mkdir -p reels
-          ffmpeg -y -i visuals.mp4 -i voice.mp3             -f lavfi -t 20.1 -i "aevalsrc=0.018*sin(2*PI*110*t)+0.012*sin(2*PI*146.83*t)+0.010*sin(2*PI*164.81*t):s=44100"             -filter_complex "[1:a]highpass=f=80,acompressor=threshold=0.1:ratio=2.5:attack=15:release=180,loudnorm=I=-15:TP=-1.5:LRA=7[voice];[2:a]volume=0.55[music];[music][voice]sidechaincompress=threshold=0.015:ratio=8:attack=10:release=250[duck];[duck][voice]amix=inputs=2:duration=longest:normalize=0[a]"             -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k -t 20.1 -movflags +faststart reels/Reel_02_Einfach_mit_KI_v2.mp4
+          ffmpeg -y -i visuals.mp4 -i voice.mp3             -f lavfi -t 20.1 -i "aevalsrc=0.018*sin(2*PI*110*t)+0.012*sin(2*PI*146.83*t)+0.010*sin(2*PI*164.81*t):s=44100"             -filter_complex "[1:a]highpass=f=80,acompressor=threshold=0.1:ratio=2.5:attack=15:release=180,loudnorm=I=-15:TP=-1.5:LRA=7,asplit=2[voice_sc][voice_mix];[2:a]volume=0.55[music];[music][voice_sc]sidechaincompress=threshold=0.015:ratio=8:attack=10:release=250[duck];[duck][voice_mix]amix=inputs=2:duration=longest:normalize=0[a]"             -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k -t 20.1 -movflags +faststart reels/Reel_02_Einfach_mit_KI_v2.mp4
 
       - name: Commit finished Reel
         run: |
