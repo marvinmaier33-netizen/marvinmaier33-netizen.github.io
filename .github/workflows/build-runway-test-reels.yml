@@ -1,0 +1,105 @@
+name: Build two Runway test Reels
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-runway-test-reels.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core curl
+
+      - name: Download Runway assets
+        run: |
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/wan_3_0/1478c637-2dcf-4dcb-84db-5c1d7f92b3e4/Vertical_faceless_lifestyle_B_roll_for_an_Instagram_Reel__Over_the_shoulder_and_close_up_shots_only_.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZDkyMzU5MmNkYWMxMjYyNiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDI5NzI2MH0.enQsW5_DXnDKnOPQJhdg6aupahs8L08E3k0Ss6Pg5IY' -o broll1.mp4
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/wan_3_0/b43ad855-3ef9-41e5-9d4b-6047ea691dbc/Vertical_faceless_POV_lifestyle_video_for_an_Instagram_Reel__First_person_perspective_in_a_bright_mo.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNGY3ZTVkZjhmNWFmMTQ1NyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDMwNTY1Nn0.hn-obe5KRm_dDyYBcRo2Cix8oGauqI_J4k5UGoJYFH0' -o broll2.mp4
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/text_to_speech/21270ce7-0bbf-4b95-a3e1-944eca77071d/Einfach_mit_KI___Test_Reel_1_Voice.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNjRlODViOTZkNzk3ZTA3MSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDMyMjE5OH0.7ilsmNZnVvCdpVWx0SZLlkp70moR821I9AI5HnB0jus' -o voice1.mp3
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/text_to_speech/042f9482-6926-4f0f-a722-ed85a2efacce/Einfach_mit_KI___Test_Reel_2_Voice.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYWUyZDRmOThlMTNhNTU1OSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDI3ODY4MH0.IIrkfcTrzu513K1CRJV4EnCUd4ZoQ1HKFf5ljifqgmk' -o voice2.mp3
+          curl -L --fail --retry 3 'https://dnznrvs05pmza.cloudfront.net/lyria3-clip/a39c5246-1660-4c34-8664-7f9724b3ceae/Einfach_mit_KI___Reel_Background_Bed.mp3?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmY0ZGJkYmVkNWRlNTM1NSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MDMzNjcwMn0.dUJPKXISjp5jFNRlMy6AwnVBqfslihMNj19-nDdqzZk' -o music.mp3
+
+      - name: Create text files
+        run: |
+          mkdir -p tmp reels
+          printf '%s' 'Du brauchst keinen perfekten Prompt.' > tmp/r1a.txt
+          printf '%s' 'Du brauchst ein SYSTEM.' > tmp/r1b.txt
+          printf '%s' 'SORTIEREN  •  PLANEN  •  NÄCHSTE SCHRITTE' > tmp/r1c.txt
+          printf '%s' 'Aus Chaos wird ein klarer Wochenplan.' > tmp/r1d.txt
+          printf '%s' 'Kommentiere START' > tmp/cta.txt
+
+          printf '%s' 'Kühlschrank offen. Keine Idee?' > tmp/r2a.txt
+          printf '%s' 'Zutaten + Wünsche + Portionen' > tmp/r2b.txt
+          printf '%s' '→ Mahlzeiten' > tmp/r2c.txt
+          printf '%s' '→ Einkaufsliste' > tmp/r2d.txt
+
+      - name: Build Reel 1
+        run: |
+          FONT='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+          ffmpeg -y -i broll1.mp4 -i voice1.mp3 -stream_loop -1 -i music.mp3 \
+            -filter_complex "
+              [0:v]scale=1080:1920:flags=lanczos,tpad=stop_mode=clone:stop_duration=6,
+              eq=brightness=-0.03:saturation=0.95,
+              drawbox=x=70:y=90:w=320:h=72:color=0xF6F1E7@0.92:t=fill,
+              drawtext=fontfile=${FONT}:text='EINFACH MIT KI':fontsize=34:fontcolor=0x183D32:x=100:y=108,
+              drawbox=x=70:y=290:w=940:h=250:color=black@0.34:t=fill:enable='between(t,0,3.4)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r1a.txt:fontsize=62:fontcolor=white:x=(w-text_w)/2:y=355:enable='between(t,0,3.4)',
+              drawbox=x=70:y=290:w=940:h=250:color=black@0.34:t=fill:enable='between(t,3.4,6.4)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r1b.txt:fontsize=72:fontcolor=0xF28C52:x=(w-text_w)/2:y=355:enable='between(t,3.4,6.4)',
+              drawbox=x=65:y=1320:w=950:h=170:color=0x183D32@0.88:t=fill:enable='between(t,6.4,10.2)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r1c.txt:fontsize=38:fontcolor=white:x=(w-text_w)/2:y=1380:enable='between(t,6.4,10.2)',
+              drawbox=x=70:y=305:w=940:h=220:color=black@0.36:t=fill:enable='between(t,10.2,13.1)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r1d.txt:fontsize=56:fontcolor=white:x=(w-text_w)/2:y=370:enable='between(t,10.2,13.1)',
+              drawbox=x=120:y=620:w=840:h=420:color=0x183D32@0.96:t=fill:enable='gte(t,13.1)',
+              drawtext=fontfile=${FONT}:textfile=tmp/cta.txt:fontsize=82:fontcolor=0xF28C52:x=(w-text_w)/2:y=745:enable='gte(t,13.1)',
+              drawtext=fontfile=${FONT}:text='Zugang per DM':fontsize=46:fontcolor=white:x=(w-text_w)/2:y=870:enable='gte(t,13.1)',
+              format=yuv420p[v];
+              [1:a]volume=1.0[voice];
+              [2:a]volume=0.10[music];
+              [music][voice]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
+              [duck][voice]amix=inputs=2:duration=first:normalize=0[a]" \
+            -map "[v]" -map "[a]" -t 16 -r 30 -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart reels/Reel_02_System_statt_Promptchaos.mp4
+
+      - name: Build Reel 2
+        run: |
+          FONT='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+          ffmpeg -y -i broll2.mp4 -i voice2.mp3 -stream_loop -1 -i music.mp3 \
+            -filter_complex "
+              [0:v]scale=1080:1920:flags=lanczos,tpad=stop_mode=clone:stop_duration=7,
+              eq=brightness=-0.02:saturation=0.98,
+              drawbox=x=70:y=90:w=320:h=72:color=0xF6F1E7@0.92:t=fill,
+              drawtext=fontfile=${FONT}:text='EINFACH MIT KI':fontsize=34:fontcolor=0x183D32:x=100:y=108,
+              drawbox=x=70:y=260:w=940:h=230:color=0xF6F1E7@0.92:t=fill:enable='between(t,0,3.3)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r2a.txt:fontsize=58:fontcolor=0x183D32:x=(w-text_w)/2:y=335:enable='between(t,0,3.3)',
+              drawbox=x=90:y=1290:w=900:h=180:color=0x183D32@0.90:t=fill:enable='between(t,3.3,7.4)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r2b.txt:fontsize=42:fontcolor=white:x=(w-text_w)/2:y=1350:enable='between(t,3.3,7.4)',
+              drawbox=x=190:y=330:w=700:h=150:color=0xF6F1E7@0.94:t=fill:enable='between(t,7.4,10.8)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r2c.txt:fontsize=62:fontcolor=0x183D32:x=(w-text_w)/2:y=375:enable='between(t,7.4,10.8)',
+              drawbox=x=190:y=330:w=700:h=150:color=0xF6F1E7@0.94:t=fill:enable='between(t,10.8,13.6)',
+              drawtext=fontfile=${FONT}:textfile=tmp/r2d.txt:fontsize=62:fontcolor=0x183D32:x=(w-text_w)/2:y=375:enable='between(t,10.8,13.6)',
+              drawbox=x=120:y=620:w=840:h=420:color=0x183D32@0.96:t=fill:enable='gte(t,13.6)',
+              drawtext=fontfile=${FONT}:textfile=tmp/cta.txt:fontsize=82:fontcolor=0xF28C52:x=(w-text_w)/2:y=745:enable='gte(t,13.6)',
+              drawtext=fontfile=${FONT}:text='Zugang per DM':fontsize=46:fontcolor=white:x=(w-text_w)/2:y=870:enable='gte(t,13.6)',
+              format=yuv420p[v];
+              [1:a]volume=1.0[voice];
+              [2:a]volume=0.10[music];
+              [music][voice]sidechaincompress=threshold=0.015:ratio=8:attack=15:release=250[duck];
+              [duck][voice]amix=inputs=2:duration=first:normalize=0[a]" \
+            -map "[v]" -map "[a]" -t 16.72 -r 30 -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart reels/Reel_03_Kuehlschrank_KI.mp4
+
+      - name: Commit finished Reels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reels/Reel_02_System_statt_Promptchaos.mp4 reels/Reel_03_Kuehlschrank_KI.mp4
+          git commit -m "Add two Runway test Reels" || exit 0
+          git push
